@@ -86,8 +86,9 @@ header p {
 
 .columns {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(260px, 380px) 1fr;
   gap: 16px;
+  align-items: start;
 }
 
 @media (max-width: 800px) {
@@ -112,6 +113,13 @@ header p {
   color: var(--text-muted);
 }
 
+.image-wrap,
+.ascii-wrap {
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
 .image-wrap {
   display: flex;
   justify-content: center;
@@ -119,9 +127,11 @@ header p {
   min-height: 300px;
   max-height: 520px;
   overflow: auto;
-  background: var(--bg-sunken);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+}
+
+.ascii-wrap {
+  min-height: 480px;
+  overflow-x: auto;
 }
 
 #original {
@@ -136,7 +146,6 @@ header p {
   white-space: pre;
   font-family: "DejaVu Sans Mono", "Cascadia Mono", Consolas, Menlo, monospace;
   font-weight: bold;
-  overflow: auto;
   color: #fff;
 }
 
