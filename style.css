@@ -3,7 +3,7 @@
   --bg-panel: #e2e5ea;
   --bg-sunken: #010409;
   --border: #30363d;
-  --text: #e6edf3;
+  --text: #29ada2;
   --text-muted: #8b949e;
   --accent: #3fb950;
   --accent-hover: #46c653;
@@ -130,7 +130,7 @@ header p {
 }
 
 .ascii-wrap {
-  overflow: hidden;
+  overflow: auto;
 }
 
 #original {
