@@ -21,6 +21,7 @@ const fontSizeInput = document.getElementById("font-size");
 const fontSizeValue = document.getElementById("font-size-value");
 const invertInput = document.getElementById("invert");
 const colorInput = document.getElementById("color");
+const fitInput = document.getElementById("fit");
 const themeSelect = document.getElementById("theme");
 const btnDownloadTxt = document.getElementById("btn-download-txt");
 const btnDownloadPng = document.getElementById("btn-download-png");
@@ -124,7 +125,17 @@ function renderPreview(colored) {
     asciiPre.style.color = theme.color || "";
     asciiPre.textContent = asciiText;
   }
-  autofit();
+  applyFit();
+}
+
+function applyFit() {
+  if (fitInput.checked) {
+    asciiWrap.style.overflow = "hidden";
+    autofit();
+  } else {
+    asciiWrap.style.overflow = "auto";
+    asciiPre.style.transform = "none";
+  }
 }
 
 function autofit() {
@@ -293,10 +304,13 @@ themeSelect.addEventListener("change", () => {
 });
 invertInput.addEventListener("change", compute);
 colorInput.addEventListener("change", compute);
+fitInput.addEventListener("change", () => {
+  if (sourceImage) applyFit();
+});
 window.addEventListener("resize", () => {
   if (sourceImage) {
     matchPreviewSize();
-    requestAnimationFrame(autofit);
+    requestAnimationFrame(applyFit);
   }
 });
 
