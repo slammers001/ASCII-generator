@@ -20,6 +20,7 @@ const numColsValue = document.getElementById("num-cols-value");
 const fontSizeInput = document.getElementById("font-size");
 const fontSizeValue = document.getElementById("font-size-value");
 const invertInput = document.getElementById("invert");
+const colorInput = document.getElementById("color");
 const themeSelect = document.getElementById("theme");
 const btnDownloadTxt = document.getElementById("btn-download-txt");
 const btnDownloadPng = document.getElementById("btn-download-png");
@@ -28,8 +29,9 @@ const asciiWrap = document.getElementById("ascii-wrap");
 
 let sourceImage = null;
 let asciiText = "";
+let asciiRows = [];
 
-function asciiFromImage(img, numCols, charSet) {
+function analyzeImage(img, numCols, charSet) {
   const canvas = document.createElement("canvas");
   canvas.width = img.naturalWidth || img.width;
   canvas.height = img.naturalHeight || img.height;
@@ -42,45 +44,86 @@ function asciiFromImage(img, numCols, charSet) {
   const cellHeight = 2 * cellWidth;
   const numRows = Math.max(1, Math.floor(height / cellHeight));
 
-  const lines = [];
+  const rows = [];
   for (let i = 0; i < numRows; i++) {
     const rowStart = Math.floor(i * cellHeight);
     const rowEnd = Math.min(Math.floor((i + 1) * cellHeight), height);
-    let line = "";
+    const row = [];
     for (let j = 0; j < numCols; j++) {
       const colStart = Math.floor(j * cellWidth);
       const colEnd = Math.min(Math.floor((j + 1) * cellWidth), width);
       let sum = 0;
+      let rSum = 0;
+      let gSum = 0;
+      let bSum = 0;
       let count = 0;
       for (let y = rowStart; y < rowEnd; y++) {
         for (let x = colStart; x < colEnd; x++) {
           const idx = (y * width + x) * 4;
-          const r = data[idx];
-          const g = data[idx + 1];
-          const b = data[idx + 2];
-          const a = data[idx + 3];
-          const alpha = a / 255;
-          sum += (0.299 * r + 0.587 * g + 0.114 * b) * alpha + 255 * (1 - alpha);
+          const a = data[idx + 3] / 255;
+          const r = data[idx] * a + 255 * (1 - a);
+          const g = data[idx + 1] * a + 255 * (1 - a);
+          const b = data[idx + 2] * a + 255 * (1 - a);
+          sum += 0.299 * r + 0.587 * g + 0.114 * b;
+          rSum += r;
+          gSum += g;
+          bSum += b;
           count++;
         }
       }
       const mean = count > 0 ? sum / count : 0;
       const charIdx = Math.min(Math.floor((mean / 255) * numChars), numChars - 1);
-      line += charSet[charIdx];
+      const color =
+        count > 0
+          ? { r: Math.round(rSum / count), g: Math.round(gSum / count), b: Math.round(bSum / count) }
+          : { r: 255, g: 255, b: 255 };
+      row.push({ char: charSet[charIdx], color });
     }
-    lines.push(line);
+    rows.push(row);
   }
-  return lines.join("\n");
+  return rows;
 }
 
-function renderPreview() {
+function rowsToText(rows) {
+  return rows.map((row) => row.map((cell) => cell.char).join("")).join("\n");
+}
+
+function invertColor({ r, g, b }) {
+  return { r: 255 - r, g: 255 - g, b: 255 - b };
+}
+
+function escapeHtml(ch) {
+  if (ch === "&") return "&amp;";
+  if (ch === "<") return "&lt;";
+  if (ch === ">") return "&gt;";
+  if (ch === '"') return "&quot;";
+  if (ch === "'") return "&#39;";
+  return ch;
+}
+
+function renderPreview(colored) {
   const theme = THEMES[themeSelect.value];
-  asciiPre.style.color = theme.color || "";
   asciiPre.style.backgroundColor = theme.background || "";
   const px = parseInt(fontSizeInput.value, 10);
   asciiPre.style.fontSize = `${px}px`;
   asciiPre.style.lineHeight = `${px * 2}px`;
-  asciiPre.textContent = asciiText;
+
+  if (colored) {
+    asciiPre.style.color = "";
+    asciiPre.innerHTML = asciiRows
+      .map((row) =>
+        row
+          .map((cell) => {
+            const color = invertInput.checked ? invertColor(cell.color) : cell.color;
+            return `<span style="color:rgb(${color.r},${color.g},${color.b})">${escapeHtml(cell.char)}</span>`;
+          })
+          .join("")
+      )
+      .join("\n");
+  } else {
+    asciiPre.style.color = theme.color || "";
+    asciiPre.textContent = asciiText;
+  }
   autofit();
 }
 
@@ -98,11 +141,13 @@ function autofit() {
 function compute() {
   const charSet = CHAR_SETS[modeSelect.value];
   const numCols = parseInt(numColsInput.value, 10);
-  asciiText = asciiFromImage(sourceImage, numCols, charSet);
-  if (invertInput.checked) {
+  const colored = colorInput.checked;
+  asciiRows = analyzeImage(sourceImage, numCols, charSet);
+  asciiText = rowsToText(asciiRows);
+  if (!colored && invertInput.checked) {
     asciiText = invertText(asciiText, charSet);
   }
-  renderPreview();
+  renderPreview(colored);
   btnDownloadTxt.disabled = false;
   btnDownloadPng.disabled = false;
 }
@@ -148,6 +193,7 @@ function resetToUpload() {
   dropzone.classList.remove("hidden");
   sourceImage = null;
   asciiText = "";
+  asciiRows = [];
   originalImg.src = "";
   asciiPre.textContent = "";
   asciiWrap.style.width = "";
@@ -157,9 +203,8 @@ function resetToUpload() {
   fileInput.value = "";
 }
 
-function renderToCanvas(bg) {
+function renderToCanvas(bg, colored) {
   const numCols = parseInt(numColsInput.value, 10);
-  const text = asciiText;
   const cellWidth = sourceImage.naturalWidth / numCols;
   const charWidth = cellWidth * 2;
   const canvas = document.createElement("canvas");
@@ -170,9 +215,9 @@ function renderToCanvas(bg) {
   const metrics = ctx.measureText("M");
   const actualWidth = metrics.width || charWidth;
 
-  const lines = text.split("\n");
+  const lineCount = colored ? asciiRows.length : asciiText.split("\n").length;
   const outWidth = Math.ceil(actualWidth * numCols);
-  const outHeight = Math.ceil(charWidth * 2 * lines.length);
+  const outHeight = Math.ceil(charWidth * 2 * lineCount);
 
   canvas.width = outWidth;
   canvas.height = outHeight;
@@ -181,11 +226,22 @@ function renderToCanvas(bg) {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
   ctx.font = font;
-  ctx.fillStyle = bg === "white" ? "#000000" : "#ffffff";
   ctx.textBaseline = "top";
-  lines.forEach((line, i) => {
-    ctx.fillText(line, 0, i * charWidth * 2 + charWidth * 0.35);
-  });
+  const textYOffset = charWidth * 0.35;
+  if (colored) {
+    asciiRows.forEach((row, i) => {
+      row.forEach((cell, j) => {
+        const color = invertInput.checked ? invertColor(cell.color) : cell.color;
+        ctx.fillStyle = `rgb(${color.r},${color.g},${color.b})`;
+        ctx.fillText(cell.char, j * actualWidth, i * charWidth * 2 + textYOffset);
+      });
+    });
+  } else {
+    ctx.fillStyle = bg === "white" ? "#000000" : "#ffffff";
+    asciiText.split("\n").forEach((line, i) => {
+      ctx.fillText(line, 0, i * charWidth * 2 + textYOffset);
+    });
+  }
   return canvas;
 }
 
@@ -230,12 +286,13 @@ numColsInput.addEventListener("input", () => {
 });
 fontSizeInput.addEventListener("input", () => {
   fontSizeValue.textContent = fontSizeInput.value;
-  if (sourceImage) renderPreview();
+  if (sourceImage) renderPreview(colorInput.checked);
 });
 themeSelect.addEventListener("change", () => {
-  if (sourceImage) renderPreview();
+  if (sourceImage) renderPreview(colorInput.checked);
 });
 invertInput.addEventListener("change", compute);
+colorInput.addEventListener("change", compute);
 window.addEventListener("resize", () => {
   if (sourceImage) {
     matchPreviewSize();
@@ -253,7 +310,7 @@ btnDownloadTxt.addEventListener("click", () => {
 
 btnDownloadPng.addEventListener("click", () => {
   const bg = themeSelect.value === "light" ? "white" : "black";
-  const canvas = renderToCanvas(bg);
+  const canvas = renderToCanvas(bg, colorInput.checked);
   const base = (sourceImage.src.split("/").pop() || "image").split(".")[0];
   canvas.toBlob((blob) => downloadBlob(blob, `${base}-ascii.png`), "image/png");
 });
