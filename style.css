@@ -130,7 +130,7 @@ header p {
 }
 
 .ascii-wrap {
-  overflow: auto;
+  overflow: hidden;
 }
 
 #original {
@@ -142,7 +142,9 @@ header p {
 #ascii {
   margin: 0;
   padding: 16px;
+  display: inline-block;
   white-space: pre;
+  transform-origin: 0 0;
   font-family: "DejaVu Sans Mono", "Cascadia Mono", Consolas, Menlo, monospace;
   font-weight: bold;
   color: #fff;

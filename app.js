@@ -81,6 +81,18 @@ function renderPreview() {
   asciiPre.style.fontSize = `${px}px`;
   asciiPre.style.lineHeight = `${px * 2}px`;
   asciiPre.textContent = asciiText;
+  autofit();
+}
+
+function autofit() {
+  const natWidth = asciiPre.offsetWidth;
+  const natHeight = asciiPre.offsetHeight;
+  if (natWidth === 0 || natHeight === 0) return;
+  const availWidth = asciiWrap.clientWidth;
+  const availHeight = asciiWrap.clientHeight;
+  if (availWidth === 0 || availHeight === 0) return;
+  const scale = Math.min(availWidth / natWidth, availHeight / natHeight, 1);
+  asciiPre.style.transform = `scale(${scale})`;
 }
 
 function compute() {
@@ -108,8 +120,11 @@ function activateImage(img) {
   originalImg.src = img.src;
   workspace.classList.remove("hidden");
   dropzone.classList.add("hidden");
-  matchPreviewSize();
   compute();
+  requestAnimationFrame(() => {
+    matchPreviewSize();
+    autofit();
+  });
 }
 
 function matchPreviewSize() {
@@ -222,7 +237,10 @@ themeSelect.addEventListener("change", () => {
 });
 invertInput.addEventListener("change", compute);
 window.addEventListener("resize", () => {
-  if (sourceImage) matchPreviewSize();
+  if (sourceImage) {
+    matchPreviewSize();
+    requestAnimationFrame(autofit);
+  }
 });
 
 btnChange.addEventListener("click", resetToUpload);
