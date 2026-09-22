@@ -1,14 +1,14 @@
 :root {
-  --bg: #0b0712;
-  --bg-panel: #161022;
-  --bg-sunken: #070411;
-  --border: #322842;
-  --text: #efe7fa;
-  --text-muted: #a89ec2;
-  --accent: #ff3fd1;
+  --bg: #f7f2fb;
+  --bg-panel: #ffffff;
+  --bg-sunken: #efe9f5;
+  --border: #ded4e8;
+  --text: #231833;
+  --text-muted: #6f6485;
+  --accent: #ff2fb8;
   --accent-hover: #ff6fde;
-  --accent-alt: #8ef7b9;
-  --pink-glow: 0 0 12px rgba(255, 63, 209, 0.45);
+  --accent-alt: #0ea75c;
+  --pink-glow: 0 0 10px rgba(255, 47, 184, 0.35);
 }
 
 * {
@@ -63,7 +63,7 @@ header p {
 #dropzone:focus,
 #dropzone.dragover {
   border-color: var(--accent-hover);
-  background: #1a1226;
+  background: #fff0fa;
   box-shadow: var(--pink-glow);
 }
 
@@ -259,7 +259,7 @@ footer {
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  background: rgba(5, 3, 12, 0.97);
+  background: rgba(248, 244, 252, 0.97);
 }
 
 .preview-toolbar {

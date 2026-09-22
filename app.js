@@ -7,6 +7,7 @@ const PREVIEW_FONT = 16;
 const ZOOM_MIN = 0.25;
 const ZOOM_MAX = 8;
 const ZOOM_STEP = 1.25;
+const LIGHT_BG = true;
 
 const dropzone = document.getElementById("dropzone");
 const fileInput = document.getElementById("file-input");
@@ -147,7 +148,9 @@ function hslToRgb(h, s, l) {
 function boostColor({ r, g, b }) {
   const [h, s, l] = rgbToHsl(r, g, b);
   const outS = Math.max(s, 0.78);
-  const outL = Math.min(Math.max(l, 0.52), 0.8);
+  const outL = LIGHT_BG
+    ? Math.min(Math.max(l, 0.32), 0.58)
+    : Math.min(Math.max(l, 0.52), 0.8);
   return hslToRgb(h, outS, outL);
 }
 
@@ -312,7 +315,7 @@ function renderToCanvas(colored) {
 
   canvas.width = outWidth;
   canvas.height = outHeight;
-  ctx.fillStyle = "#0a0614";
+  ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.font = font;
   ctx.textBaseline = "top";
@@ -326,7 +329,7 @@ function renderToCanvas(colored) {
       });
     });
   } else {
-    ctx.fillStyle = "#b8ffd9";
+    ctx.fillStyle = "#0ea75c";
     asciiText.split("\n").forEach((line, i) => {
       ctx.fillText(line, 0, i * charWidth * 2 + textYOffset);
     });
