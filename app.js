@@ -3,11 +3,10 @@ const CHAR_SETS = {
   complex: "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. "
 };
 
-const THEMES = {
-  dark: { color: "#b8ffd9", background: "#0a0614" },
-  light: { color: "#150a20", background: "#f5f1fa" },
-  none: { color: "", background: "" }
-};
+const PREVIEW_FONT = 16;
+const ZOOM_MIN = 0.25;
+const ZOOM_MAX = 8;
+const ZOOM_STEP = 1.25;
 
 const dropzone = document.getElementById("dropzone");
 const fileInput = document.getElementById("file-input");
@@ -17,16 +16,26 @@ const workspace = document.getElementById("workspace");
 const modeSelect = document.getElementById("mode");
 const numColsInput = document.getElementById("num-cols");
 const numColsValue = document.getElementById("num-cols-value");
-const fontSizeInput = document.getElementById("font-size");
-const fontSizeValue = document.getElementById("font-size-value");
 const invertInput = document.getElementById("invert");
 const colorInput = document.getElementById("color");
-const fitInput = document.getElementById("fit");
-const themeSelect = document.getElementById("theme");
+const btnPreview = document.getElementById("btn-preview");
 const btnDownloadTxt = document.getElementById("btn-download-txt");
 const btnDownloadPng = document.getElementById("btn-download-png");
 const btnChange = document.getElementById("btn-change");
 const asciiWrap = document.getElementById("ascii-wrap");
+const previewOverlay = document.getElementById("preview-overlay");
+const previewFull = document.getElementById("preview-full");
+const previewBody = document.getElementById("preview-body");
+const zoomOutBtn = document.getElementById("zoom-out");
+const zoomInBtn = document.getElementById("zoom-in");
+const zoomLabel = document.getElementById("zoom-label");
+const closePreviewBtn = document.getElementById("close-preview");
+
+let previewZoom = 1;
+
+function isColored() {
+  return colorInput.value === "color";
+}
 
 let sourceImage = null;
 let asciiText = "";
@@ -151,40 +160,30 @@ function escapeHtml(ch) {
   return ch;
 }
 
-function renderPreview(colored) {
-  const theme = THEMES[themeSelect.value];
-  asciiPre.style.backgroundColor = theme.background || "";
-  const px = parseInt(fontSizeInput.value, 10);
-  asciiPre.style.fontSize = `${px}px`;
-  asciiPre.style.lineHeight = `${px * 2}px`;
-
-  if (colored) {
-    asciiPre.style.color = "";
-    asciiPre.innerHTML = asciiRows
-      .map((row) =>
-        row
-          .map((cell) => {
-            const color = invertInput.checked ? invertColor(boostColor(cell.color)) : boostColor(cell.color);
-            return `<span style="color:rgb(${color.r},${color.g},${color.b})">${escapeHtml(cell.char)}</span>`;
-          })
-          .join("")
-      )
-      .join("\n");
-  } else {
-    asciiPre.style.color = theme.color || "";
-    asciiPre.textContent = asciiText;
-  }
-  applyFit();
+function coloredHtml() {
+  return asciiRows
+    .map((row) =>
+      row
+        .map((cell) => {
+          const color = invertInput.checked ? invertColor(boostColor(cell.color)) : boostColor(cell.color);
+          return `<span style="color:rgb(${color.r},${color.g},${color.b})">${escapeHtml(cell.char)}</span>`;
+        })
+        .join("")
+    )
+    .join("\n");
 }
 
-function applyFit() {
-  if (fitInput.checked) {
-    asciiWrap.style.overflow = "hidden";
-    autofit();
+function renderPreview(colored) {
+  asciiPre.style.color = "";
+  asciiPre.style.backgroundColor = "";
+  asciiPre.style.fontSize = `${PREVIEW_FONT}px`;
+  asciiPre.style.lineHeight = `${PREVIEW_FONT * 2}px`;
+  if (colored) {
+    asciiPre.innerHTML = coloredHtml();
   } else {
-    asciiWrap.style.overflow = "auto";
-    asciiPre.style.transform = "none";
+    asciiPre.textContent = asciiText;
   }
+  autofit();
 }
 
 function autofit() {
@@ -198,16 +197,47 @@ function autofit() {
   asciiPre.style.transform = `scale(${scale})`;
 }
 
+function openPreview() {
+  const colored = isColored();
+  previewFull.style.backgroundColor = "";
+  if (colored) {
+    previewFull.innerHTML = coloredHtml();
+  } else {
+    previewFull.textContent = asciiText;
+  }
+  previewZoom = 1;
+  updateZoom();
+  previewBody.scrollTop = 0;
+  previewBody.scrollLeft = 0;
+  previewOverlay.classList.remove("hidden");
+}
+
+function closePreview() {
+  previewOverlay.classList.add("hidden");
+}
+
+function updateZoom() {
+  zoomLabel.textContent = `${Math.round(previewZoom * 100)}%`;
+  previewFull.style.fontSize = `${PREVIEW_FONT * previewZoom}px`;
+  previewFull.style.lineHeight = `${PREVIEW_FONT * 2 * previewZoom}px`;
+}
+
+function zoomBy(factor) {
+  previewZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, previewZoom * factor));
+  updateZoom();
+}
+
 function compute() {
   const charSet = CHAR_SETS[modeSelect.value];
   const numCols = parseInt(numColsInput.value, 10);
-  const colored = colorInput.checked;
+  const colored = isColored();
   asciiRows = analyzeImage(sourceImage, numCols, charSet);
   asciiText = rowsToText(asciiRows);
   if (!colored && invertInput.checked) {
     asciiText = invertText(asciiText, charSet);
   }
   renderPreview(colored);
+  btnPreview.disabled = false;
   btnDownloadTxt.disabled = false;
   btnDownloadPng.disabled = false;
 }
@@ -258,12 +288,13 @@ function resetToUpload() {
   asciiPre.textContent = "";
   asciiWrap.style.width = "";
   asciiWrap.style.height = "";
+  btnPreview.disabled = true;
   btnDownloadTxt.disabled = true;
   btnDownloadPng.disabled = true;
   fileInput.value = "";
 }
 
-function renderToCanvas(bg, colored) {
+function renderToCanvas(colored) {
   const numCols = parseInt(numColsInput.value, 10);
   const cellWidth = sourceImage.naturalWidth / numCols;
   const charWidth = cellWidth * 2;
@@ -281,10 +312,8 @@ function renderToCanvas(bg, colored) {
 
   canvas.width = outWidth;
   canvas.height = outHeight;
-  if (bg === "white") {
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
+  ctx.fillStyle = "#0a0614";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.font = font;
   ctx.textBaseline = "top";
   const textYOffset = charWidth * 0.35;
@@ -297,7 +326,7 @@ function renderToCanvas(bg, colored) {
       });
     });
   } else {
-    ctx.fillStyle = bg === "white" ? "#000000" : "#ffffff";
+    ctx.fillStyle = "#b8ffd9";
     asciiText.split("\n").forEach((line, i) => {
       ctx.fillText(line, 0, i * charWidth * 2 + textYOffset);
     });
@@ -344,26 +373,28 @@ numColsInput.addEventListener("input", () => {
   numColsValue.textContent = numColsInput.value;
   compute();
 });
-fontSizeInput.addEventListener("input", () => {
-  fontSizeValue.textContent = fontSizeInput.value;
-  if (sourceImage) renderPreview(colorInput.checked);
-});
-themeSelect.addEventListener("change", () => {
-  if (sourceImage) renderPreview(colorInput.checked);
-});
 invertInput.addEventListener("change", compute);
 colorInput.addEventListener("change", compute);
-fitInput.addEventListener("change", () => {
-  if (sourceImage) applyFit();
-});
 window.addEventListener("resize", () => {
   if (sourceImage) {
     matchPreviewSize();
-    requestAnimationFrame(applyFit);
+    requestAnimationFrame(autofit);
   }
 });
 
 btnChange.addEventListener("click", resetToUpload);
+btnPreview.addEventListener("click", openPreview);
+closePreviewBtn.addEventListener("click", closePreview);
+zoomInBtn.addEventListener("click", () => zoomBy(ZOOM_STEP));
+zoomOutBtn.addEventListener("click", () => zoomBy(1 / ZOOM_STEP));
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !previewOverlay.classList.contains("hidden")) {
+    closePreview();
+  }
+});
+previewOverlay.addEventListener("click", (e) => {
+  if (e.target === previewOverlay) closePreview();
+});
 
 btnDownloadTxt.addEventListener("click", () => {
   const blob = new Blob([asciiText], { type: "text/plain;charset=utf-8" });
@@ -372,8 +403,7 @@ btnDownloadTxt.addEventListener("click", () => {
 });
 
 btnDownloadPng.addEventListener("click", () => {
-  const bg = themeSelect.value === "light" ? "white" : "black";
-  const canvas = renderToCanvas(bg, colorInput.checked);
+  const canvas = renderToCanvas(isColored());
   const base = (sourceImage.src.split("/").pop() || "image").split(".")[0];
   canvas.toBlob((blob) => downloadBlob(blob, `${base}-ascii.png`), "image/png");
 });

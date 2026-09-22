@@ -134,7 +134,7 @@ header p {
 }
 
 .ascii-wrap {
-  overflow: auto;
+  overflow: hidden;
 }
 
 #original {
@@ -250,4 +250,75 @@ footer {
 
 .hidden {
   display: none !important;
+}
+
+/* Fullscreen preview overlay */
+.preview-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  background: rgba(5, 3, 12, 0.97);
+}
+
+.preview-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.preview-toolbar button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.preview-toolbar button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.preview-zoom {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#zoom-label {
+  min-width: 52px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.preview-close {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+
+.preview-body {
+  flex: 1;
+  overflow: auto;
+  padding: 24px;
+}
+
+#preview-full {
+  margin: 0;
+  display: inline-block;
+  white-space: pre;
+  font-family: "DejaVu Sans Mono", "Cascadia Mono", Consolas, Menlo, monospace;
+  font-weight: bold;
+  font-size: 16px;
+  line-height: 32px;
+  color: var(--accent-alt);
 }

@@ -57,42 +57,41 @@
         </div>
 
         <div class="control">
-          <label for="font-size">Preview size: <span id="font-size-value">13</span>px</label>
-          <input type="range" id="font-size" min="6" max="32" step="1" value="13" />
-        </div>
-
-        <div class="control">
           <label for="invert">Invert colors</label>
           <input type="checkbox" id="invert" />
         </div>
 
         <div class="control">
           <label for="color">Colored</label>
-          <input type="checkbox" id="color" />
-        </div>
-
-        <div class="control">
-          <label for="fit">Shrink to fit</label>
-          <input type="checkbox" id="fit" />
-        </div>
-
-        <div class="control">
-          <label for="theme">Preview theme</label>
-          <select id="theme">
-            <option value="dark" selected>Dark background</option>
-            <option value="light">Light background</option>
-            <option value="none">None (transparent)</option>
+          <select id="color">
+            <option value="mono" selected>No</option>
+            <option value="color">Yes</option>
           </select>
         </div>
       </section>
 
       <div class="actions">
+        <button id="btn-preview" disabled>See preview</button>
         <button id="btn-download-txt" disabled>Download .txt</button>
         <button id="btn-download-png" disabled>Download PNG</button>
         <button id="btn-change" class="ghost">Change image</button>
       </div>
     </section>
   </main>
+
+  <div class="preview-overlay hidden" id="preview-overlay" role="dialog" aria-label="Fullscreen preview">
+    <div class="preview-toolbar">
+      <div class="preview-zoom">
+        <button id="zoom-out" type="button">−</button>
+        <span id="zoom-label">100%</span>
+        <button id="zoom-in" type="button">+</button>
+      </div>
+      <button id="close-preview" type="button" class="preview-close">Close</button>
+    </div>
+    <div class="preview-body" id="preview-body">
+      <pre id="preview-full" spellcheck="false"></pre>
+    </div>
+  </div>
 
   <footer>
     <p>Runs entirely in your browser — nothing is uploaded to any server.</p>
