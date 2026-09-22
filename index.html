@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image to ASCII</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>#</text></svg>" />
+</head>
+<body>
+  <header>
+    <h1>Image to ASCII</h1>
+    <p>Upload an image, tweak the options, and preview the ASCII art before you save it.</p>
+  </header>
+
+  <main>
+    <section id="dropzone" tabindex="0" role="button" aria-label="Upload an image">
+      <input type="file" id="file-input" accept="image/*" hidden />
+      <div id="dropzone-inner">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 16V4m0 0 4 4m-4-4-4 4" />
+          <path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
+        </svg>
+        <p><strong>Drop an image here</strong> or click to browse</p>
+        <span class="hint">.png, .jpg, .webp, .gif — anything the browser can read</span>
+      </div>
+    </section>
+
+    <section id="workspace" class="hidden">
+      <div class="columns">
+        <div class="panel" id="image-panel">
+          <h2>Original</h2>
+          <div class="image-wrap">
+            <img id="original" alt="Original image" />
+          </div>
+        </div>
+        <div class="panel">
+          <h2>ASCII preview</h2>
+          <div class="image-wrap">
+            <pre id="ascii" spellcheck="false"></pre>
+          </div>
+        </div>
+      </div>
+
+      <section class="controls">
+        <div class="control">
+          <label for="mode">Character set</label>
+          <select id="mode">
+            <option value="complex" selected>Complex (70 chars)</option>
+            <option value="simple">Simple (10 chars)</option>
+          </select>
+        </div>
+
+        <div class="control">
+          <label for="num-cols">Width: <span id="num-cols-value">150</span> chars</label>
+          <input type="range" id="num-cols" min="40" max="300" step="10" value="150" />
+        </div>
+
+        <div class="control">
+          <label for="font-size">Preview size: <span id="font-size-value">13</span>px</label>
+          <input type="range" id="font-size" min="6" max="32" step="1" value="13" />
+        </div>
+
+        <div class="control">
+          <label for="invert">Invert colors</label>
+          <input type="checkbox" id="invert" />
+        </div>
+
+        <div class="control">
+          <label for="theme">Preview theme</label>
+          <select id="theme">
+            <option value="dark" selected>Dark background</option>
+            <option value="light">Light background</option>
+            <option value="none">None (transparent)</option>
+          </select>
+        </div>
+      </section>
+
+      <div class="actions">
+        <button id="btn-download-txt" disabled>Download .txt</button>
+        <button id="btn-download-png" disabled>Download PNG</button>
+        <button id="btn-change" class="ghost">Change image</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Runs entirely in your browser — nothing is uploaded to any server.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
