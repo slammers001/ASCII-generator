@@ -130,8 +130,7 @@ header p {
 }
 
 .ascii-wrap {
-  min-height: 480px;
-  overflow-x: auto;
+  overflow: auto;
 }
 
 #original {

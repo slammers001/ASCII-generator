@@ -24,6 +24,7 @@ const themeSelect = document.getElementById("theme");
 const btnDownloadTxt = document.getElementById("btn-download-txt");
 const btnDownloadPng = document.getElementById("btn-download-png");
 const btnChange = document.getElementById("btn-change");
+const asciiWrap = document.getElementById("ascii-wrap");
 
 let sourceImage = null;
 let asciiText = "";
@@ -107,7 +108,14 @@ function activateImage(img) {
   originalImg.src = img.src;
   workspace.classList.remove("hidden");
   dropzone.classList.add("hidden");
+  matchPreviewSize();
   compute();
+}
+
+function matchPreviewSize() {
+  const rect = originalImg.getBoundingClientRect();
+  asciiWrap.style.width = `${rect.width}px`;
+  asciiWrap.style.height = `${rect.height}px`;
 }
 
 function loadImageFromFile(file) {
@@ -127,6 +135,8 @@ function resetToUpload() {
   asciiText = "";
   originalImg.src = "";
   asciiPre.textContent = "";
+  asciiWrap.style.width = "";
+  asciiWrap.style.height = "";
   btnDownloadTxt.disabled = true;
   btnDownloadPng.disabled = true;
   fileInput.value = "";
@@ -211,6 +221,9 @@ themeSelect.addEventListener("change", () => {
   if (sourceImage) renderPreview();
 });
 invertInput.addEventListener("change", compute);
+window.addEventListener("resize", () => {
+  if (sourceImage) matchPreviewSize();
+});
 
 btnChange.addEventListener("click", resetToUpload);
 
