@@ -1,12 +1,14 @@
 :root {
-  --bg: #eeeff0;
-  --bg-panel: #e2e5ea;
-  --bg-sunken: #010409;
-  --border: #30363d;
-  --text: #29ada2;
-  --text-muted: #8b949e;
-  --accent: #3fb950;
-  --accent-hover: #46c653;
+  --bg: #0b0712;
+  --bg-panel: #161022;
+  --bg-sunken: #070411;
+  --border: #322842;
+  --text: #efe7fa;
+  --text-muted: #a89ec2;
+  --accent: #ff3fd1;
+  --accent-hover: #ff6fde;
+  --accent-alt: #8ef7b9;
+  --pink-glow: 0 0 12px rgba(255, 63, 209, 0.45);
 }
 
 * {
@@ -47,25 +49,27 @@ header p {
 
 /* Dropzone */
 #dropzone {
-  border: 2px dashed var(--border);
+  border: 2px dashed var(--accent);
   border-radius: 12px;
   background: var(--bg-panel);
   padding: 48px 20px;
   text-align: center;
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
   outline: none;
 }
 
 #dropzone:hover,
 #dropzone:focus,
 #dropzone.dragover {
-  border-color: var(--accent);
-  background: #10151d;
+  border-color: var(--accent-hover);
+  background: #1a1226;
+  box-shadow: var(--pink-glow);
 }
 
 #dropzone-inner svg {
   color: var(--accent);
+  filter: drop-shadow(0 0 6px rgba(255, 63, 209, 0.6));
   margin-bottom: 8px;
 }
 
@@ -147,7 +151,7 @@ header p {
   transform-origin: 0 0;
   font-family: "DejaVu Sans Mono", "Cascadia Mono", Consolas, Menlo, monospace;
   font-weight: bold;
-  color: #fff;
+  color: var(--accent-alt);
 }
 
 /* Controls */
@@ -205,32 +209,36 @@ input[type="checkbox"] {
 .actions button {
   background: var(--accent);
   border: none;
-  color: #0d1117;
-  font-weight: 600;
+  color: #14061d;
+  font-weight: 700;
   padding: 10px 18px;
   border-radius: 8px;
   font-size: 0.95rem;
   cursor: pointer;
-  transition: background 0.15s ease, opacity 0.15s ease;
+  box-shadow: var(--pink-glow);
+  transition: background 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
 }
 
 .actions button:hover:not(:disabled) {
   background: var(--accent-hover);
+  box-shadow: 0 0 16px rgba(255, 63, 209, 0.7);
 }
 
 .actions button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .actions button.ghost {
   background: transparent;
-  color: var(--text);
+  color: var(--accent-alt);
   border: 1px solid var(--border);
+  box-shadow: none;
 }
 
 .actions button.ghost:hover {
-  border-color: var(--text-muted);
+  border-color: var(--accent-alt);
 }
 
 footer {

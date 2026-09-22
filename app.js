@@ -4,8 +4,8 @@ const CHAR_SETS = {
 };
 
 const THEMES = {
-  dark: { color: "#ffffff", background: "#010409" },
-  light: { color: "#000000", background: "#ffffff" },
+  dark: { color: "#b8ffd9", background: "#0a0614" },
+  light: { color: "#150a20", background: "#f5f1fa" },
   none: { color: "", background: "" }
 };
 
@@ -93,6 +93,55 @@ function invertColor({ r, g, b }) {
   return { r: 255 - r, g: 255 - g, b: 255 - b };
 }
 
+function rgbToHsl(r, g, b) {
+  r /= 255;
+  g /= 255;
+  b /= 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  let h = 0;
+  let s = 0;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h /= 6;
+  }
+  return [h, s, l];
+}
+
+function hslToRgb(h, s, l) {
+  if (s === 0) {
+    const v = Math.round(l * 255);
+    return { r: v, g: v, b: v };
+  }
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const hue2rgb = (t) => {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+  };
+  return {
+    r: Math.round(hue2rgb(h + 1 / 3) * 255),
+    g: Math.round(hue2rgb(h) * 255),
+    b: Math.round(hue2rgb(h - 1 / 3) * 255)
+  };
+}
+
+function boostColor({ r, g, b }) {
+  const [h, s, l] = rgbToHsl(r, g, b);
+  const outS = Math.max(s, 0.78);
+  const outL = Math.min(Math.max(l, 0.52), 0.8);
+  return hslToRgb(h, outS, outL);
+}
+
 function escapeHtml(ch) {
   if (ch === "&") return "&amp;";
   if (ch === "<") return "&lt;";
@@ -115,7 +164,7 @@ function renderPreview(colored) {
       .map((row) =>
         row
           .map((cell) => {
-            const color = invertInput.checked ? invertColor(cell.color) : cell.color;
+            const color = invertInput.checked ? invertColor(boostColor(cell.color)) : boostColor(cell.color);
             return `<span style="color:rgb(${color.r},${color.g},${color.b})">${escapeHtml(cell.char)}</span>`;
           })
           .join("")
@@ -242,7 +291,7 @@ function renderToCanvas(bg, colored) {
   if (colored) {
     asciiRows.forEach((row, i) => {
       row.forEach((cell, j) => {
-        const color = invertInput.checked ? invertColor(cell.color) : cell.color;
+        const color = invertInput.checked ? invertColor(boostColor(cell.color)) : boostColor(cell.color);
         ctx.fillStyle = `rgb(${color.r},${color.g},${color.b})`;
         ctx.fillText(cell.char, j * actualWidth, i * charWidth * 2 + textYOffset);
       });
